@@ -1,0 +1,341 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../paper-card/paper-card.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-ripple/paper-ripple.html">
+
+<dom-module id="paper-stepper">
+	<template>
+		<style>
+			*{
+				box-sizing: border-box;
+			}
+			:host{
+				display: flex;
+				font-family: Roboto;
+			}
+			paper-card{
+				display: block;
+			}
+			#steps{
+				display: flex;
+				position: relative;
+				justify-content: space-between;
+				height: 72px;
+				align-items: stretch;
+				overflow: auto;
+			}
+			#steps > paper-ripple{
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				right: 0px;
+				bottom: 0px;
+				z-index: 2;
+			}
+			#steps::before{
+				content: '';
+				position: absolute;
+				display: block;
+				left: 24px;
+				right: 24px;
+				top: 36px;
+				background: var(--paper-grey-400);
+				height: 1px;
+				z-index: 0;
+			}
+			#steps .step{
+				background: white;
+				z-index: 1;
+				padding: 0px 10px;
+				display: flex;
+				align-items: center;
+				cursor: pointer;
+			}
+			#steps .step[data-selected]{
+				font-weight: bold;
+				color: rgba(0,0,0,.87);
+			}
+			#steps .step[data-disabled]{
+				color: rgba(0,0,0,.38);
+			}
+			#steps .step[data-first]{
+				padding-left: 24px;
+			}
+			#steps .step[data-last]{
+				padding-right: 24px;
+			}
+			#steps .step .icon{
+				display: inline-block;
+				width: 26px;
+				height: 26px;
+				position: relative;
+				top: -1px;
+				left: -1px;
+			}
+			#steps .step .circle{
+				width: 24px;
+				height: 24px;
+				background: var(--primary-color);
+				color: white;
+				border-radius: 50%;
+				text-align: center;
+				font-size: 12px;
+				margin-right: 4px;
+				line-height: 24px;
+				position: relative;
+			}
+			#steps .step .circle .number{
+
+			}
+			#steps .step .circle iron-icon{
+				display: none;
+			}
+			#steps .step .circle[data-finished] .number{
+				display: none;
+			}
+			#steps .step .circle[data-finished] iron-icon{
+				display: inline-block;
+				width: 18px;
+				height: 18px;
+			}
+			#steps .step[data-disabled]{
+				/*cursor: auto;*/
+			}
+			#steps .step[data-disabled] .circle{
+				color: white;
+				background: rgba(0,0,0,.38);
+			}
+			#steps .step[data-invalid]{
+				color: var(--google-red-500);
+			}
+			#steps .step[data-invalid] .circle{
+				background: var(--google-red-500);
+			}
+			#steps .step .circle .error{
+				display: none;
+			}
+			#steps .step[data-invalid] .circle .error{
+				display: block;
+				font-size: 18px;
+			}
+			#steps .step[data-invalid] .circle .number{
+				display: none;
+			}
+			#steps .step .label{
+				display: inline-flex;
+				flex-direction: column;
+				padding-left: 8px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				font-size: 14px;
+			}
+			#steps .step .label .secondary{
+				color: rgba(0,0,0,.38);
+				font-weight: normal;
+				font-size: 12px;
+			}
+			#steps .step .label .secondary.error{
+				color: var(--google-red-500);
+			}
+			.card-actions{
+				display: flex;
+			}
+			paper-card{
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				width: 100%;
+			}
+			iron-pages{
+				padding: 0px;
+				flex: 1;
+				display: flex;
+			}
+			.card-actions .space{
+				flex: 1;
+			}
+			.card-actions paper-button.primary{
+				color: var(--primary-color);
+			}
+			:host([label-placement='below']) #steps{
+				height: 104px;
+			}
+			:host([label-placement='below']) #steps .step{
+				flex-direction: column;
+				justify-content: flex-start;
+				padding-top: 24px;
+				background: transparent;
+			}
+			:host([label-placement='below']) #steps .step .label{
+				padding-left: 0px;
+				align-items: center;
+			}
+			:host([label-placement='below']) #steps::before{
+				top: 34px;
+			}
+			:host([label-placement='below']) #steps .step .icon.circle{
+				margin-right: 0px;
+				margin-bottom: 16px;
+			}
+			:host([label-placement='below']) #steps .step .icon.circle::before{
+				content: ' ';
+				display: block;
+				position: absolute;
+				left: -8px;
+				right: -8px;
+				top: 0px;
+				bottom: 0px;
+				background: white;
+				z-index: -1;
+			}
+			:host([label-placement='below']) #steps .step[data-first] .icon::before{
+				left: -50px;
+			}
+			:host([label-placement='below']) #steps .step[data-last] .icon::before{
+				right: -50px;
+			}
+		</style>
+		<paper-card id="card">
+
+			<paper-material id="steps">
+
+				<paper-ripple id="ripple" noink></paper-ripple>
+
+				<template is="dom-repeat" items="{{steps}}" on-dom-change="_scrollIntoViewSelected" index-as="stepIndex">
+
+					<div class="step" data-first$="{{item.first}}" data-last$="{{item.last}}" data-selected$="{{item.selected}}" data-disabled$="{{item.disabled}}" data-invalid$="{{!item.valid}}" on-tap="_goToStep" on-down="_startRipple" on-up="_finishRipple">
+
+						<!--<iron-icon icon="error" class="icon" hidden$="{{item.valid}}"></iron-icon>-->
+
+						<div class="icon circle" data-finished$="{{item.finished}}">
+							<span class="number">{{item.step}}</span>
+							<span class="error">!</span>
+							<iron-icon icon="done" class="icon"></iron-icon>
+						</div>
+
+						<div class="label">
+							<span class="primary">{{item.label}}</span>
+							<span class="secondary" hidden$="{{!isOptionalLabelVisible(item.optional, item.valid)}}">Optional</span>
+							<span class="secondary error" hidden$="{{item.valid}}">{{item.errorMessage}}</span>
+						</div>
+
+					</div>
+
+				</template>
+
+			</paper-material>
+
+			<iron-pages selected="{{currentStep}}">
+				<content select=".step"></content>
+			</iron-pages>
+
+			<div class="card-actions">
+
+				<paper-button on-tap="_goToPrevPage" disabled$="{{_onFirstStep}}">back</paper-button>
+
+				<div class="space"></div>
+
+				<paper-button on-tap="_goToNextPage" class="primary" hidden$="{{_onLastStep}}">next</paper-button>
+				<paper-button on-tap="_triggerFinishedEvent" class="primary" hidden$="{{!_onLastStep}}">finish</paper-button>
+
+			</div>
+
+		</paper-card>
+	</template>
+	<script>
+		(function() {
+			'use strict';
+
+			Polymer({
+				is:'paper-stepper',
+				properties: {
+					currentStep: {
+						type: Number,
+						value: 0
+					},
+					maxStepReached: {
+						type: Number,
+						value: 0
+					},
+					labelPlacement: {
+						type: String,
+						value: 'right',
+						reflectToAttribute: true
+					}
+				},
+				observers: [
+					'resetSteps(currentStep)'
+				],
+				ready: function(){
+					this.async(function(){
+						this.resetSteps();
+					});
+				},
+				isOptionalLabelVisible: function(optional, valid) {
+					return valid && optional;
+				},
+				_goToPrevPage: function(){
+					this.currentStep--;
+				},
+				_goToNextPage: function(){
+					this.currentStep++;
+				},
+				_scrollIntoViewSelected: function(ev){
+					this.$$('[data-selected]').scrollIntoView();
+				},
+				_triggerFinishedEvent: function(){
+					if(!this.steps.some(function(n){return !n.node.valid})){
+						this.fire('finished');
+					}else{
+						this._showErrorForLastPage = true;
+						this.resetSteps();
+					}
+				},
+				resetSteps: function(){
+					this.debounce('reset-steps', function(){
+
+						if(this.currentStep > this.maxStepReached){
+							this.maxStepReached = this.currentStep;
+						}
+
+						var steps = this.getEffectiveChildNodes().filter(function(node){
+							return node.nodeType == 1 && node.matches('.step');
+						}).map(function(node, i, all){
+							var result = {
+								step: i + 1,
+								label: node.getAttribute('label'),
+								first: i == 0,
+								last: i == all.length - 1,
+								selected: i == this.currentStep,
+								disabled: i > this.maxStepReached,
+								valid: (node.valid || node.hasAttribute('valid')) || (this._showErrorForLastPage ? i > this.maxStepReached : i + 1 > this.maxStepReached),
+								node: node,
+								optional: node.optional || node.hasAttribute('optional'),
+								errorMessage: node.errorMessage || node.getAttribute('error-message'),
+								finished: (node.valid || node.hasAttribute('valid')) && (this._showErrorForLastPage ? this.maxStepReached >= i : this.maxStepReached > i)
+							};
+							return result;
+						}.bind(this));
+
+						this.set('_onLastStep', this.currentStep == steps.length - 1);
+						this.set('_onFirstStep', this.currentStep == 0);
+
+						this.set('steps', steps);
+					});
+				},
+				_goToStep: function(ev){
+					this.currentStep = ev.model.stepIndex;
+				},
+				_startRipple: function(ev){
+					this.$.ripple.downAction(ev);
+				},
+				_finishRipple: function(ev){
+					this.$.ripple.upAction(ev);
+				}
+			});
+		})();
+	</script>
+</dom-module>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+	<link rel="import" href="../../polymer/polymer.html">
+
+	<link rel="import" href="../paper-stepper.html">
+	<link rel="import" href="../../font-roboto/roboto.html">
+
+	<link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+</head>
+<body>
+	<template id="app" is="dom-bind">
+		<style>
+			paper-stepper{
+				width: 100%;
+				max-width: 900px;
+				margin-bottom: 30px;
+			}
+			.step{
+				padding: 40px;
+			}
+		</style>
+		<paper-stepper on-finished="hooray">
+			<div class="step" label="Ad unit details" valid="{{isValidOne}}">
+				one
+			</div>
+			<div class="step" label="Ad sizes" editable valid="{{isValidTwo}}" error-message="Check the checkbox" optional>
+				<paper-checkbox checked="{{isValidTwo}}"></paper-checkbox>
+			</div>
+			<div class="step" label="Ad sizes 2" editable valid="{{isValidOne}}" optional>
+				two and a half
+			</div>
+			<div class="step" label="Create an ad group" valid="{{isValidThree}}">
+				three
+			</div>
+		</paper-stepper>
+		<paper-stepper on-finished="hooray" label-placement="below">
+			<div class="step" label="Ad unit details" valid="{{isValidOne}}">
+				one
+			</div>
+			<div class="step" label="Ad sizes" editable valid="{{isValidTwo}}" error-message="Check the checkbox" optional>
+				<paper-checkbox checked="{{isValidTwo}}"></paper-checkbox>
+			</div>
+			<div class="step" label="Ad sizes 2" editable valid="{{isValidOne}}" optional>
+				two and a half
+			</div>
+			<div class="step" label="Create an ad group" valid="{{isValidThree}}">
+				three
+			</div>
+		</paper-stepper>
+	</template>
+	<script>
+		var app = document.getElementById('app');
+		app.isValidOne = true;
+		app.isValidThree = true;
+		app.hooray = function(){
+			alert('hooray');
+		}
+	</script>
+</body>
+</html>
